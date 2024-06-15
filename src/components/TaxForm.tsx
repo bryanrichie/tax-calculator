@@ -3,7 +3,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -23,29 +22,59 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import calculateTax from '@/actions/calculate-tax';
 
 const formSchema = z.object({
-  superannuationPercentage: z.number().min(10.5, 'Percentage must be at least 10.5%').optional(),
-  amountType: z.enum(['gross', 'grossSuperannuation'], {
-    required_error: 'You need to select an income amount type.',
-  }),
-  amount: z.number().min(1, 'Income amount must be more than $0').optional(),
-  taxRatesYear: z.enum(['2022-23', '2023-24']).optional(),
+  superannuationPercentage: z.string().optional(),
+  amountType: z.enum(['gross', 'grossSuperannuation']),
+  amount: z.string().optional(),
+  taxRatesYear: z.enum(['2022-23', '2023-24']),
 });
 
-export const TaxForm = () => {
+export const TaxForm: React.FC<{ setTax: (tax: number) => void }> = (setTax) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      superannuationPercentage: undefined,
+      superannuationPercentage: '10.5',
       amountType: 'gross',
-      amount: undefined,
+      amount: '0',
       taxRatesYear: '2023-24',
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const superannuationPercentage = Number(values.superannuationPercentage);
+    const amountType = values.amountType;
+    const amount = Number(values.amount);
+    const taxRatesYear = values.taxRatesYear;
+
+    let hasErrors = false;
+
+    if (superannuationPercentage < 10.5 || !superannuationPercentage) {
+      form.setError('superannuationPercentage', {
+        message: 'Superannuation must be at least 10.5%',
+      });
+      hasErrors = true;
+    } else {
+      form.clearErrors('superannuationPercentage');
+    }
+
+    if (amount <= 0 || !amount) {
+      form.setError('amount', { message: 'Income amount must be more than $0' });
+      hasErrors = true;
+    } else {
+      form.clearErrors('amount');
+    }
+
+    if (hasErrors) return;
+
+    const tax = await calculateTax({
+      superannuationPercentage,
+      amountType,
+      amount,
+      taxRatesYear,
+    });
+    console.log(tax);
   };
 
   return (
