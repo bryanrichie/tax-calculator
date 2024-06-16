@@ -9,6 +9,15 @@ interface CalculateTaxPayload {
   taxRatesYear: string;
 }
 
+export interface TaxCalculationResults {
+  superannuationAmount: string;
+  grossIncome?: string;
+  grossSuperannuationIncome?: string;
+  taxAmount: string;
+  netIncome: string;
+  netSuperannuationIncome: string;
+}
+
 export const calculateTax = async (payload: CalculateTaxPayload) => {
   try {
     const { superannuationPercentage, amountType, amount, taxRatesYear } = payload;
@@ -16,7 +25,7 @@ export const calculateTax = async (payload: CalculateTaxPayload) => {
 
     const taxRates = await getTaxRates(taxRatesYear);
 
-    if (!taxRates) throw new Error('Tax Rates not found');
+    if (!taxRates) throw new Error('Tax rates for the selected year could not be found');
 
     const taxBracket = taxRates.find(
       (bracket) =>
@@ -29,14 +38,7 @@ export const calculateTax = async (payload: CalculateTaxPayload) => {
     const amountToTax = amount - over;
     const taxAmount = base ? base + amountToTax * rate : amountToTax * rate;
 
-    const taxRatesResults: {
-      superannuationAmount: string;
-      grossIncome?: string;
-      grossSuperannuationIncome?: string;
-      taxAmount: string;
-      netIncome: string;
-      netSuperannuationIncome: string;
-    } = {
+    const taxRatesResults: TaxCalculationResults = {
       superannuationAmount: '',
       grossIncome: undefined,
       grossSuperannuationIncome: undefined,
@@ -74,6 +76,9 @@ export const calculateTax = async (payload: CalculateTaxPayload) => {
     return taxRatesResults;
   } catch (error) {
     console.error(error);
+    throw new Error(
+      error instanceof Error ? error.message : 'An unknown error has occured, please try again.'
+    );
   }
 };
 

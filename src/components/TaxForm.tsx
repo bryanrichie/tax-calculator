@@ -1,8 +1,5 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -22,44 +19,48 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { calculateTax } from '@/actions/calculate-tax';
+import { useToast } from '@/components/ui/use-toast';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { TaxCalculationResults, calculateTax } from '@/actions/calculate-tax';
+
+interface TaxFormProps {
+  setTaxCalculationResults: React.Dispatch<React.SetStateAction<TaxCalculationResults | undefined>>;
+}
 
 const formSchema = z.object({
-  superannuationPercentage: z
-    .string()
-    .refine(
-      (value) => {
-        const percentageValue = Number(value);
-        return percentageValue >= 10.5;
-      },
-      {
-        message: 'Superannuation must be at least 10.5%',
-      }
-    )
-    .optional(),
+  superannuationPercentage: z.string().refine(
+    (value) => {
+      const percentageValue = Number(value);
+      return percentageValue >= 10.5 && percentageValue <= 100;
+    },
+    {
+      message: 'Superannuation must be at least 10.5% and must not exceed 100%',
+    }
+  ),
   amountType: z.enum(['gross', 'grossSuperannuation']),
-  amount: z
-    .string()
-    .refine(
-      (value) => {
-        const amountValue = Number(value);
-        return amountValue > 0;
-      },
-      {
-        message: 'Income must exceeed $0',
-      }
-    )
-    .optional(),
+  amount: z.string().refine(
+    (value) => {
+      const amountValue = Number(value);
+      return amountValue > 0;
+    },
+    {
+      message: 'Income must exceeed $0',
+    }
+  ),
   taxRatesYear: z.enum(['2022-23', '2023-24']),
 });
 
-export const TaxForm: React.FC<{ setTax: (tax: number) => void }> = (setTax) => {
+export const TaxForm: React.FC<TaxFormProps> = ({ setTaxCalculationResults }) => {
+  const { toast } = useToast();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      superannuationPercentage: '10.5',
+      superannuationPercentage: undefined,
       amountType: 'gross',
-      amount: '0',
+      amount: undefined,
       taxRatesYear: '2023-24',
     },
   });
@@ -70,13 +71,24 @@ export const TaxForm: React.FC<{ setTax: (tax: number) => void }> = (setTax) => 
     const amount = Number(values.amount);
     const taxRatesYear = values.taxRatesYear;
 
-    const tax = await calculateTax({
-      superannuationPercentage,
-      amountType,
-      amount,
-      taxRatesYear,
-    });
-    console.log(tax);
+    try {
+      const taxResults = await calculateTax({
+        superannuationPercentage,
+        amountType,
+        amount,
+        taxRatesYear,
+      });
+
+      setTaxCalculationResults(taxResults);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Something went wrong!',
+        description:
+          error instanceof Error ? error.message : 'Error calculating tax, please try again.',
+      });
+      console.log(error instanceof Error ? error.message : 'Error calculating tax');
+    }
   };
 
   return (
