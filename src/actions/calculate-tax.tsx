@@ -1,5 +1,7 @@
 'use server';
 
+import { getTaxRates } from '@/services/tax-rates.services';
+
 interface CalculateTaxPayload {
   superannuationPercentage: number;
   amountType: string;
@@ -7,18 +9,76 @@ interface CalculateTaxPayload {
   taxRatesYear: string;
 }
 
-const fetchTaxRates = async () => {
-  const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
-  const response = await fetch(`${baseURL}/api/tax-rates`);
-  const data = await response.json();
-
-  return { taxRates: data };
+const formatResult = (result: number) => {
+  return result.toFixed(2);
 };
 
 export const calculateTax = async (payload: CalculateTaxPayload) => {
-  console.log(payload);
-  const { taxRates } = await fetchTaxRates();
-  console.log('taxRates', taxRates);
-  return taxRates;
+  try {
+    const { superannuationPercentage, amountType, amount, taxRatesYear } = payload;
+    const superannuationPercent = superannuationPercentage / 100;
+
+    const taxRates = await getTaxRates(taxRatesYear);
+
+    if (!taxRates) throw new Error('Tax Rates not found');
+
+    const taxBracket = taxRates.find(
+      (bracket) =>
+        amount >= bracket.lowerRange && (bracket.upperRange === 0 || amount <= bracket.upperRange)
+    );
+
+    if (!taxBracket) throw new Error('No applicable tax bracket found');
+
+    const { base, rate, over } = taxBracket;
+    const amountToTax = amount - over;
+    const taxAmount = base ? base + amountToTax * rate : amountToTax * rate;
+
+    const taxRatesResults: {
+      superannuationAmount: string;
+      grossIncome?: string;
+      grossSuperannuationIncome?: string;
+      taxAmount: string;
+      netIncome: string;
+      netSuperannuationIncome: string;
+    } = {
+      superannuationAmount: '',
+      grossIncome: undefined,
+      grossSuperannuationIncome: undefined,
+      taxAmount: '',
+      netIncome: '',
+      netSuperannuationIncome: '',
+    };
+
+    taxRatesResults.taxAmount = formatResult(taxAmount);
+
+    if (amountType === 'gross') {
+      const superannuationAmount = Math.round(amount * superannuationPercent);
+      const grossSuperannuationIncome = amount + superannuationAmount;
+      const netIncome = Math.max(amount - taxAmount);
+      const netSuperannuationIncome = netIncome + superannuationAmount;
+
+      taxRatesResults.netIncome = formatResult(netIncome);
+      taxRatesResults.grossSuperannuationIncome = formatResult(grossSuperannuationIncome);
+      taxRatesResults.superannuationAmount = formatResult(superannuationAmount);
+      taxRatesResults.netSuperannuationIncome = formatResult(netSuperannuationIncome);
+    }
+
+    if (amountType === 'grossSuperannuation') {
+      const grossIncome = amount / (1 + superannuationPercent);
+      const superannuationAmount = amount - grossIncome;
+      const netIncome = Math.max(grossIncome - taxAmount);
+      const netSuperannuationIncome = netIncome + superannuationAmount;
+
+      taxRatesResults.netIncome = formatResult(netIncome);
+      taxRatesResults.grossIncome = formatResult(grossIncome);
+      taxRatesResults.superannuationAmount = formatResult(superannuationAmount);
+      taxRatesResults.netSuperannuationIncome = formatResult(netSuperannuationIncome);
+    }
+
+    return taxRatesResults;
+  } catch (error) {
+    console.error(error);
+  }
 };
+
 export default calculateTax;
