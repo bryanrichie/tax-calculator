@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import calculateTax from '@/actions/calculate-tax';
+import { calculateTax } from '@/actions/calculate-tax';
 
 const formSchema = z.object({
   superannuationPercentage: z

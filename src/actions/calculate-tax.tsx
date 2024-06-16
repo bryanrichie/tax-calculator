@@ -9,10 +9,6 @@ interface CalculateTaxPayload {
   taxRatesYear: string;
 }
 
-const formatResult = (result: number) => {
-  return result.toFixed(2);
-};
-
 export const calculateTax = async (payload: CalculateTaxPayload) => {
   try {
     const { superannuationPercentage, amountType, amount, taxRatesYear } = payload;
@@ -81,4 +77,6 @@ export const calculateTax = async (payload: CalculateTaxPayload) => {
   }
 };
 
-export default calculateTax;
+const formatResult = (result: number) => {
+  return result.toFixed(2);
+};
