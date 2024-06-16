@@ -1,8 +1,5 @@
 'use server';
 
-import { TaxForm } from '@/components/TaxForm';
-import { useEffect, useState } from 'react';
-import { NextApiRequest, NextApiResponse } from 'next';
 import { TaxCalculator } from '@/components/TaxCalculator';
 
 export default async function Home() {
