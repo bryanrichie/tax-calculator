@@ -1,21 +1,21 @@
 'use server';
 
-import { getTaxRates } from '@/services/tax-rates.services';
+import { TaxRatesYear, getTaxRates } from '@/services/tax-rates.services';
 
 interface CalculateTaxPayload {
   superannuationPercentage: number;
   amountType: string;
   amount: number;
-  taxRatesYear: string;
+  taxRatesYear: TaxRatesYear;
 }
 
 export interface TaxCalculationResults {
-  superannuationAmount: string;
-  grossIncome?: string;
-  grossSuperannuationIncome?: string;
-  taxAmount: string;
-  netIncome: string;
-  netSuperannuationIncome: string;
+  superannuationAmount: number;
+  grossIncome?: number;
+  grossSuperannuationIncome?: number;
+  taxAmount: number;
+  netIncome: number;
+  netSuperannuationIncome: number;
 }
 
 export const calculateTax = async (payload: CalculateTaxPayload) => {
@@ -38,27 +38,19 @@ export const calculateTax = async (payload: CalculateTaxPayload) => {
     const amountToTax = amount - over;
     const taxAmount = base ? base + amountToTax * rate : amountToTax * rate;
 
-    const taxRatesResults: TaxCalculationResults = {
-      superannuationAmount: '',
-      grossIncome: undefined,
-      grossSuperannuationIncome: undefined,
-      taxAmount: '',
-      netIncome: '',
-      netSuperannuationIncome: '',
-    };
-
-    taxRatesResults.taxAmount = formatResult(taxAmount);
-
     if (amountType === 'gross') {
       const superannuationAmount = Math.round(amount * superannuationPercent);
       const grossSuperannuationIncome = amount + superannuationAmount;
       const netIncome = Math.max(amount - taxAmount);
       const netSuperannuationIncome = netIncome + superannuationAmount;
 
-      taxRatesResults.netIncome = formatResult(netIncome);
-      taxRatesResults.grossSuperannuationIncome = formatResult(grossSuperannuationIncome);
-      taxRatesResults.superannuationAmount = formatResult(superannuationAmount);
-      taxRatesResults.netSuperannuationIncome = formatResult(netSuperannuationIncome);
+      return {
+        superannuationAmount: formatResult(superannuationAmount),
+        grossSuperannuationIncome: formatResult(grossSuperannuationIncome),
+        taxAmount: formatResult(taxAmount),
+        netIncome: formatResult(netIncome),
+        netSuperannuationIncome: formatResult(netSuperannuationIncome),
+      };
     }
 
     if (amountType === 'grossSuperannuation') {
@@ -67,13 +59,14 @@ export const calculateTax = async (payload: CalculateTaxPayload) => {
       const netIncome = Math.max(grossIncome - taxAmount);
       const netSuperannuationIncome = netIncome + superannuationAmount;
 
-      taxRatesResults.netIncome = formatResult(netIncome);
-      taxRatesResults.grossIncome = formatResult(grossIncome);
-      taxRatesResults.superannuationAmount = formatResult(superannuationAmount);
-      taxRatesResults.netSuperannuationIncome = formatResult(netSuperannuationIncome);
+      return {
+        superannuationAmount: formatResult(superannuationAmount),
+        grossIncome: formatResult(grossIncome),
+        taxAmount: formatResult(taxAmount),
+        netIncome: formatResult(netIncome),
+        netSuperannuationIncome: formatResult(netSuperannuationIncome),
+      };
     }
-
-    return taxRatesResults;
   } catch (error) {
     console.error(error);
     throw new Error(
@@ -82,6 +75,6 @@ export const calculateTax = async (payload: CalculateTaxPayload) => {
   }
 };
 
-const formatResult = (result: number) => {
-  return result.toFixed(2);
+const formatResult = (result: number): number => {
+  return Number(result.toFixed(2));
 };

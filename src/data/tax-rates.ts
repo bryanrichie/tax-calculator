@@ -1,4 +1,5 @@
 export const taxRatesData = {
+  '2022-23': [],
   '2023-24': [
     { lowerRange: 0, upperRange: 18200, base: 0, rate: 0, over: 0 },
     {
