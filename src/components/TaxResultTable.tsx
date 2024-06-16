@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 import { TaxCalculationResults } from '@/actions/calculate-tax';
 
 interface TaxResultsTableProps {
@@ -17,9 +18,8 @@ interface TaxResultsTableProps {
 
 export const TaxResultTable: React.FC<TaxResultsTableProps> = ({ taxCalculationResults }) => {
   if (!taxCalculationResults) {
-    return <div>No tax calculation results found</div>;
+    return <Skeleton className="h-[125px] w-full md:w-96 rounded-xl" />;
   }
-
   const {
     grossIncome,
     grossSuperannuationIncome,
@@ -80,7 +80,7 @@ export const TaxResultTable: React.FC<TaxResultsTableProps> = ({ taxCalculationR
   );
 };
 
-const formatCurrency = (value: string): string => {
+const formatCurrency = (value: number): string => {
   const formattedValue = Number(value).toLocaleString('en-AU', {
     style: 'currency',
     currency: 'AUD',

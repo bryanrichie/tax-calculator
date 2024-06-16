@@ -24,6 +24,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { TaxCalculationResults, calculateTax } from '@/actions/calculate-tax';
+import { useEffect } from 'react';
+import { TaxRatesYear } from '@/services/tax-rates.services';
 
 interface TaxFormProps {
   setTaxCalculationResults: React.Dispatch<React.SetStateAction<TaxCalculationResults | undefined>>;
@@ -58,18 +60,33 @@ export const TaxForm: React.FC<TaxFormProps> = ({ setTaxCalculationResults }) =>
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      superannuationPercentage: undefined,
+      superannuationPercentage: '11',
       amountType: 'gross',
-      amount: undefined,
+      amount: '100000',
       taxRatesYear: '2023-24',
     },
   });
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      const taxResults = await calculateTax({
+        superannuationPercentage: 11,
+        amountType: 'gross',
+        amount: 100000,
+        taxRatesYear: '2023-24',
+      });
+
+      setTaxCalculationResults(taxResults);
+    };
+
+    fetchInitialData();
+  }, []);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const superannuationPercentage = Number(values.superannuationPercentage);
     const amountType = values.amountType;
     const amount = Number(values.amount);
-    const taxRatesYear = values.taxRatesYear;
+    const taxRatesYear: TaxRatesYear = values.taxRatesYear;
 
     try {
       const taxResults = await calculateTax({
@@ -149,7 +166,8 @@ export const TaxForm: React.FC<TaxFormProps> = ({ setTaxCalculationResults }) =>
                 <Input placeholder="Income amount" {...field} />
               </FormControl>
               <FormDescription>
-                Enter your income amount according to the amount type selected above.
+                Enter your income amount to match the income amount type that you have selected
+                above.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -177,7 +195,9 @@ export const TaxForm: React.FC<TaxFormProps> = ({ setTaxCalculationResults }) =>
             </FormItem>
           )}
         />
-        <Button type="submit">Calculate</Button>
+        <Button type="submit" disabled={form.formState.isLoading}>
+          Calculate
+        </Button>
       </form>
     </Form>
   );
