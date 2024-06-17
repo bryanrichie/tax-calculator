@@ -23,16 +23,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { TaxCalculationResults, calculateTax } from '@/actions/calculate-tax';
+import { calculateTax } from '@/actions/calculate-tax';
 import { useEffect } from 'react';
 import { TaxRatesYear } from '@/services/tax-rates.services';
-
-interface TaxFormProps {
-  setTaxCalculationResults: React.Dispatch<React.SetStateAction<TaxCalculationResults | undefined>>;
-}
+import { TaxFormProps } from '@/types/tax-calculator.types';
 
 const formSchema = z.object({
-  superannuationPercentage: z.string().refine(
+  superannuationPercentage: z.coerce.number().refine(
     (value) => {
       const percentageValue = Number(value);
       return percentageValue >= 10.5 && percentageValue <= 100;
@@ -42,7 +39,7 @@ const formSchema = z.object({
     }
   ),
   amountType: z.enum(['gross', 'grossSuperannuation']),
-  amount: z.string().refine(
+  amount: z.coerce.number().refine(
     (value) => {
       const amountValue = Number(value);
       return amountValue > 0;
@@ -60,9 +57,9 @@ export const TaxForm: React.FC<TaxFormProps> = ({ setTaxCalculationResults }) =>
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      superannuationPercentage: '11',
+      superannuationPercentage: 11,
       amountType: 'gross',
-      amount: '100000',
+      amount: 100000,
       taxRatesYear: '2023-24',
     },
   });
@@ -118,7 +115,11 @@ export const TaxForm: React.FC<TaxFormProps> = ({ setTaxCalculationResults }) =>
             <FormItem>
               <FormLabel>Superannuation Percentage (%)</FormLabel>
               <FormControl>
-                <Input placeholder="Superannuation percentage (minimum 10.5%)" {...field} />
+                <Input
+                  type="number"
+                  placeholder="Superannuation percentage (minimum 10.5%)"
+                  {...field}
+                />
               </FormControl>
               <FormDescription>Enter your superannuation percentage.</FormDescription>
               <FormMessage />
@@ -163,7 +164,7 @@ export const TaxForm: React.FC<TaxFormProps> = ({ setTaxCalculationResults }) =>
             <FormItem>
               <FormLabel>Income Amount ($)</FormLabel>
               <FormControl>
-                <Input placeholder="Income amount" {...field} />
+                <Input type="number" placeholder="Income amount" {...field} />
               </FormControl>
               <FormDescription>
                 Enter your income amount to match the income amount type that you have selected

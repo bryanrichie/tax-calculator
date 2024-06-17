@@ -1,15 +1,8 @@
 import { taxRatesData } from '@/data/tax-rates';
-
-interface TaxRates {
-  lowerRange: number;
-  upperRange: number;
-  base: number;
-  rate: number;
-  over: number;
-}
+import { TaxRates } from '@/types/tax-calculator.types';
 
 export type TaxRatesYear = keyof typeof taxRatesData;
 
-export const getTaxRates = (taxRatesYear: TaxRatesYear): TaxRates[] | null => {
-  return taxRatesData[taxRatesYear] || null;
+export const getTaxRates = (taxRatesYear: TaxRatesYear): TaxRates[] => {
+  return taxRatesData[taxRatesYear];
 };

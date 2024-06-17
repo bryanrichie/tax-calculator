@@ -1,25 +1,10 @@
 'use client';
 
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
-import { TaxCalculationResults } from '@/actions/calculate-tax';
-
-interface TaxResultsTableProps {
-  taxCalculationResults: TaxCalculationResults | undefined;
-}
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
+import { formatCurrency } from '@/helper/helper';
+import { TaxResultsTableProps } from '@/types/tax-calculator.types';
 
 export const TaxResultTable: React.FC<TaxResultsTableProps> = ({ taxCalculationResults }) => {
-  if (!taxCalculationResults) {
-    return <Skeleton className="h-[125px] w-full md:w-96 rounded-xl" />;
-  }
   const {
     grossIncome,
     grossSuperannuationIncome,
@@ -30,61 +15,48 @@ export const TaxResultTable: React.FC<TaxResultsTableProps> = ({ taxCalculationR
   } = taxCalculationResults;
 
   return (
-    <Table className="border-2 max-w-full md:max-w-96">
-      <TableBody className="border-b-2">
+    <Table className="table">
+      <TableBody className="table-body">
         <TableRow>
-          <TableCell className="font-medium border-r-2 text-right">Superannuation:</TableCell>
+          <TableCell className="table-cell">Superannuation:</TableCell>
           <TableCell className="text-left">{formatCurrency(superannuationAmount)}</TableCell>
         </TableRow>
       </TableBody>
       {grossIncome ? (
-        <TableBody className="border-b-2">
+        <TableBody className="table-body">
           <TableRow>
-            <TableCell className="font-medium border-r-2 text-right">Gross Income:</TableCell>
+            <TableCell className="table-cell">Gross Income:</TableCell>
             <TableCell className="text-left">{formatCurrency(grossIncome!)}</TableCell>
           </TableRow>
         </TableBody>
       ) : (
-        <TableBody className="border-b-2">
+        <TableBody className="table-body">
           <TableRow>
-            <TableCell className="font-medium border-r-2 text-right">
-              Gross + Superannuation Income:
-            </TableCell>
+            <TableCell className="table-cell">Gross + Superannuation Income:</TableCell>
             <TableCell className="text-left">
               {formatCurrency(grossSuperannuationIncome!)}
             </TableCell>
           </TableRow>
         </TableBody>
       )}
-      <TableBody className="border-b-2">
+      <TableBody className="table-body">
         <TableRow>
-          <TableCell className="font-medium border-r-2 text-right">Tax Amount:</TableCell>
+          <TableCell className="table-cell">Tax Amount:</TableCell>
           <TableCell className="text-left">{formatCurrency(taxAmount)}</TableCell>
         </TableRow>
       </TableBody>
-      <TableBody className="border-b-2">
+      <TableBody className="table-body">
         <TableRow>
-          <TableCell className="font-medium border-r-2 text-right">Net Income:</TableCell>
+          <TableCell className="table-cell">Net Income:</TableCell>
           <TableCell className="text-left">{formatCurrency(netIncome)}</TableCell>
         </TableRow>
       </TableBody>
-      <TableBody className="border-b-2">
+      <TableBody className="table-body">
         <TableRow>
-          <TableCell className="font-medium border-r-2 text-right">
-            Net + Superannuation Income:
-          </TableCell>
+          <TableCell className="table-cell">Net + Superannuation Income:</TableCell>
           <TableCell className="text-left">{formatCurrency(netSuperannuationIncome)}</TableCell>
         </TableRow>
       </TableBody>
     </Table>
   );
-};
-
-const formatCurrency = (value: number): string => {
-  const formattedValue = Number(value).toLocaleString('en-AU', {
-    style: 'currency',
-    currency: 'AUD',
-  });
-
-  return formattedValue;
 };
