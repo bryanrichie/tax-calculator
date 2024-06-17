@@ -1,24 +1,12 @@
 'use server';
 
-import { TaxRatesYear, getTaxRates } from '@/services/tax-rates.services';
+import { formatResult } from '@/helper/helper';
+import { getTaxRates } from '@/services/tax-rates.services';
+import { CalculateTaxPayload, TaxCalculationResults } from '@/types/tax-calculator.types';
 
-interface CalculateTaxPayload {
-  superannuationPercentage: number;
-  amountType: string;
-  amount: number;
-  taxRatesYear: TaxRatesYear;
-}
-
-export interface TaxCalculationResults {
-  superannuationAmount: number;
-  grossIncome?: number;
-  grossSuperannuationIncome?: number;
-  taxAmount: number;
-  netIncome: number;
-  netSuperannuationIncome: number;
-}
-
-export const calculateTax = async (payload: CalculateTaxPayload) => {
+export const calculateTax = async (
+  payload: CalculateTaxPayload
+): Promise<TaxCalculationResults> => {
   try {
     const { superannuationPercentage, amountType, amount, taxRatesYear } = payload;
     const superannuationPercent = superannuationPercentage / 100;
@@ -51,9 +39,7 @@ export const calculateTax = async (payload: CalculateTaxPayload) => {
         netIncome: formatResult(netIncome),
         netSuperannuationIncome: formatResult(netSuperannuationIncome),
       };
-    }
-
-    if (amountType === 'grossSuperannuation') {
+    } else {
       const grossIncome = amount / (1 + superannuationPercent);
       const superannuationAmount = amount - grossIncome;
       const netIncome = Math.max(grossIncome - taxAmount);
@@ -73,8 +59,4 @@ export const calculateTax = async (payload: CalculateTaxPayload) => {
       error instanceof Error ? error.message : 'An unknown error has occured, please try again.'
     );
   }
-};
-
-const formatResult = (result: number): number => {
-  return Number(result.toFixed(2));
 };

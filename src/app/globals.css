@@ -1,4 +1,15 @@
 @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
-  
+@tailwind components;
+@tailwind utilities;
+
+.table {
+  @apply border-2 max-w-full md:max-w-96;
+}
+
+.table-body {
+  @apply border-b-2;
+}
+
+.table-cell {
+  @apply font-medium border-r-2 text-right;
+}

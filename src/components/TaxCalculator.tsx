@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { TaxForm } from './TaxForm';
 import { TaxResultTable } from './TaxResultTable';
-import { TaxCalculationResults } from '@/actions/calculate-tax';
+import { TaxCalculationResults } from '@/types/tax-calculator.types';
 
-export const TaxCalculator = () => {
+export const TaxCalculator: React.FC = () => {
   const [taxCalculationResults, setTaxCalculationResults] = useState<TaxCalculationResults>();
 
   return (
@@ -19,7 +20,11 @@ export const TaxCalculator = () => {
       </div>
       <div className="flex flex-col md:flex-row px-12 md:px-24 space-y-2 md:space-y-0 space-x-0 md:space-x-12">
         <TaxForm setTaxCalculationResults={setTaxCalculationResults} />
-        <TaxResultTable taxCalculationResults={taxCalculationResults} />
+        {taxCalculationResults ? (
+          <TaxResultTable taxCalculationResults={taxCalculationResults} />
+        ) : (
+          <Skeleton className="h-[125px] w-full md:w-96 rounded-xl" />
+        )}
       </div>
     </main>
   );
