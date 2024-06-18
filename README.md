@@ -35,13 +35,13 @@ Some things to consider next time or implement in the future:
 
 ### Folder layout:
 
-`app`: Contains the root layout, page component, and global css file
-`actions`: Contains the server action used to calculate all tax data after taking in a payload and fetching tax rates data from services
-`components`: Contains functional components and UI components imported from `shadcn/ui`
-`data`: Contains mocked tax rates data that is fetched by a service function
-`helper`: Contains helper functions for formatting currency, etc
-`services`: Contains the tax-rates services file, which fetches the dummy data from the mocked data in `data` and sends it to calculate tax server action
-`types`: Contains all interfaces and types used across the whole app
+- `app`: Contains the root layout, page component, and global css file
+- `actions`: Contains the server action used to calculate all tax data after taking in a payload and fetching tax rates data from services
+- `components`: Contains functional components and UI components imported from `shadcn/ui`
+- `data`: Contains mocked tax rates data that is fetched by a service function
+- `helper`: Contains helper functions for formatting currency, etc
+- `services`: Contains the tax-rates services file, which fetches the dummy data from the mocked data in `data` and sends it to calculate tax server action
+- `types`: Contains all interfaces and types used across the whole app
 
 ## Installation
 
