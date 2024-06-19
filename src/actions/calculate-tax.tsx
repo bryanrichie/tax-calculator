@@ -13,7 +13,8 @@ export const calculateTax = async (
 
     const taxRates = await getTaxRates(taxRatesYear);
 
-    if (!taxRates) throw new Error('Tax rates for the selected year could not be found');
+    if (!taxRates || taxRates.length === 0)
+      throw new Error('Tax rates for the selected year could not be found');
 
     const taxBracket = taxRates.find(
       (bracket) =>
